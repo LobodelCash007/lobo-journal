@@ -4788,7 +4788,7 @@ const chartDefaults = {
   }
 };
 
-function buildCharts() {
+function buildCharts(tab) {
   destroyCharts();
 
   // Cumulative PnL
@@ -4836,7 +4836,8 @@ function buildCharts() {
     });
   }
 
-  // P&L by Emotion
+  // P&L by Emotion — only build when psychology tab is active
+  if (tab !== 'analytics') {
   const emotions = [...new Set(trades.map(t=>t.emotion).filter(Boolean))];
   const ePnls = emotions.map(e=>trades.filter(t=>t.emotion===e).reduce((a,t)=>a+t.pnl,0));
   if (document.getElementById('pnl-emotion-chart')) {
@@ -4870,6 +4871,7 @@ function buildCharts() {
       options:{...chartDefaults}
     });
   }
+  } // end psychology-only charts
 
   // Setup performance
   const setups = [...new Set(trades.map(t=>t.setup).filter(Boolean))];
@@ -5358,8 +5360,7 @@ function switchTab(name) {
   document.querySelectorAll('.nav-tab').forEach(t=>{ if(t.textContent.toLowerCase().includes(name.toLowerCase().slice(0,4))) t.classList.add('active'); });
   if (name==='journal') { renderJournal(trades,'journal-body'); }
   if (name==='psychology') { renderPsychology(); setTimeout(buildCharts,100); }
-  if (name==='analytics') { setTimeout(buildCharts,100); }
-  if(name==='analytics'){setTimeout(function(){renderCalendarKPIs();renderCalendar();},80);}
+  if (name==='analytics') { setTimeout(function(){ buildCharts('analytics'); renderCalendarKPIs(); renderCalendar(); },80); }
 
   if (name==='chart') { setTimeout(loadTVWidget,100); }
   if (name==='recordings') { renderRecordings(); populateTradeLinker(); autoConnectOBS(); }
