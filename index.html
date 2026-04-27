@@ -1061,6 +1061,30 @@
     font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text-secondary);
     pointer-events:none; display:none;
   }
+
+.cal-day{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:9px;min-height:88px;cursor:pointer;transition:all .2s;position:relative;display:flex;flex-direction:column}
+.cal-day:hover{border-color:var(--border-bright);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+.cal-day.cal-day-empty{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+.cal-day.cal-day-profit{border-color:rgba(0,255,157,.5);background:rgba(0,255,157,.07)}
+.cal-day.cal-day-profit:hover{box-shadow:0 6px 20px rgba(0,255,157,.15)}
+.cal-day.cal-day-loss{border-color:rgba(255,60,110,.5);background:rgba(255,60,110,.07)}
+.cal-day.cal-day-loss:hover{box-shadow:0 6px 20px rgba(255,60,110,.15)}
+.cal-day.cal-day-today{border-color:var(--accent)!important;border-width:2px;box-shadow:0 0 16px rgba(0,212,255,.25)}
+.cal-day-num{font-family:Orbitron,monospace;font-size:.85rem;font-weight:700;color:var(--text-secondary);margin-bottom:4px}
+.cal-day.cal-day-profit .cal-day-num{color:var(--green)}
+.cal-day.cal-day-loss .cal-day-num{color:var(--red)}
+.cal-day-pnl{font-family:Orbitron,monospace;font-size:.88rem;font-weight:900;margin-top:auto;letter-spacing:.5px}
+.cal-day-pnl.pos{color:var(--green);text-shadow:0 0 10px rgba(0,255,157,.5)}
+.cal-day-pnl.neg{color:var(--red);text-shadow:0 0 10px rgba(255,60,110,.5)}
+.cal-day-trades{font-size:.62rem;color:var(--text-muted);margin-top:2px}
+.cal-day-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
+.cal-dot-win{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px rgba(0,255,157,.7)}
+.cal-dot-loss{width:6px;height:6px;border-radius:50%;background:var(--red);box-shadow:0 0 5px rgba(255,60,110,.7)}
+.cal-week-total{background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:9px;min-height:88px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.cal-week-pnl{font-family:Orbitron,monospace;font-size:.88rem;font-weight:900}
+.cal-week-pnl.pos{color:var(--green)}.cal-week-pnl.neg{color:var(--red)}
+.cal-week-label-text{font-size:.6rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase}
+
 </style>
 </head>
 <body>
@@ -1081,7 +1105,6 @@
     <div class="nav-tab" onclick="switchTab('recordings')">Recordings</div>
     <div class="nav-tab" onclick="switchTab('analytics')">Analytics</div>
     <div class="nav-tab" onclick="switchTab('gex')" style="color:#a855f7">GEX</div>
-    <div class="nav-tab" onclick="switchTab('calendar')" style="color:#00ff9d;font-weight:800">📅 CALENDAR</div>
   </nav>
   <div class="nav-right">
     <div class="clock-block">
@@ -1546,6 +1569,98 @@
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px" id="weaknesses-list"></div>
     </div>
   </div>
+
+
+  <!-- ===== CALENDAR SECTION (inside Analytics) ===== -->
+  <div style="margin-top:32px">
+    <div class="section-head"><h2>Trading Calendar</h2></div>
+
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px">
+      <div style="background:linear-gradient(135deg,rgba(0,255,157,.15),rgba(0,255,157,.03));border:2px solid rgba(0,255,157,.55);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px">
+        <div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">MTD P&amp;L</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-mtd-pnl">+$0.00</div></div></div>
+      <div style="background:linear-gradient(135deg,rgba(0,212,255,.13),rgba(0,212,255,.03));border:2px solid rgba(0,212,255,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px">
+        <div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Total Trades</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-total-trades">0</div></div></div>
+      <div style="background:linear-gradient(135deg,rgba(0,212,255,.13),rgba(0,212,255,.03));border:2px solid rgba(0,212,255,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px">
+        <div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Win Rate</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-win-rate">0%</div><div style="font-size:.65rem;color:#3a6080;margin-top:3px" id="cal-win-sub">YTD</div></div></div>
+      <div style="background:linear-gradient(135deg,rgba(0,212,255,.13),rgba(0,212,255,.03));border:2px solid rgba(0,212,255,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px">
+        <div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Expectancy</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-expectancy">$0.00</div><div style="font-size:.65rem;color:#3a6080;margin-top:3px">PER TRADE</div></div></div>
+      <div style="background:linear-gradient(135deg,rgba(0,255,157,.1),rgba(0,255,157,.02));border:2px solid rgba(0,255,157,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px">
+        <div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Best Day</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#00ff9d" id="cal-best-day">&#x2014;</div></div></div>
+      <div style="background:linear-gradient(135deg,rgba(255,60,110,.1),rgba(255,60,110,.02));border:2px solid rgba(255,60,110,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px">
+        <div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Worst Day</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#ff3c6e" id="cal-worst-day">&#x2014;</div></div></div>
+    </div>
+
+    <!-- Main grid: left panels + right calendar -->
+    <div style="display:grid;grid-template-columns:340px 1fr;gap:18px">
+
+      <!-- Left: YTD + Performance + Strategies + Instruments -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+            <span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--accent);flex:1">YEAR TO DATE</span>
+            <span style="font-family:Orbitron,monospace;font-size:1rem;font-weight:900" class="pos" id="cal-ytd-total">+$0.00</span>
+          </div>
+          <canvas id="cal-equity-chart" height="110"></canvas>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+            <span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--accent);flex:1">PERFORMANCE</span>
+            <div style="display:flex;gap:5px">
+              <button style="padding:4px 12px;border-radius:6px;border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-size:.72rem;font-weight:700;cursor:pointer" id="cal-toggle-ytd" onclick="calTogglePerf('ytd')">YTD</button>
+              <button style="padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:.72rem;font-weight:700;cursor:pointer" id="cal-toggle-mtd" onclick="calTogglePerf('mtd')">MTD</button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:.72rem;font-weight:700;color:var(--text-secondary);width:80px;flex-shrink:0">PORTFOLIO</span><div style="flex:1;height:7px;background:var(--bg-panel);border-radius:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:var(--accent)" id="bench-portfolio"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.82rem;color:var(--text-primary);width:50px;text-align:right;font-weight:700" id="bench-portfolio-pct">+0.0%</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:.72rem;font-weight:700;color:var(--text-secondary);width:80px;flex-shrink:0">S&amp;P 500</span><div style="flex:1;height:7px;background:var(--bg-panel);border-radius:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:#4ade80;width:47%"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.82rem;color:var(--text-primary);width:50px;text-align:right;font-weight:700">+4.7%</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-size:.72rem;font-weight:700;color:var(--text-secondary);width:80px;flex-shrink:0">NASDAQ</span><div style="flex:1;height:7px;background:var(--bg-panel);border-radius:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:#f59e0b;width:81%"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.82rem;color:var(--text-primary);width:50px;text-align:right;font-weight:700">+8.1%</span></div>
+          </div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px">
+          <div style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">STRATEGY WIN RATES</div>
+          <div id="cal-strategy-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:12px">Log trades with a setup to see breakdown</div></div>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+            <span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:var(--accent);flex:1">INSTRUMENTS</span>
+            <span style="font-size:.68rem;font-weight:700;background:var(--accent-dim);color:var(--accent);border:1px solid var(--border-bright);border-radius:20px;padding:3px 12px" id="cal-sym-count">0 SYMBOLS</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px" id="cal-sym-chips"></div>
+        </div>
+      </div>
+
+      <!-- Right: Calendar grid -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <button style="width:36px;height:36px;border-radius:50%;border:2px solid var(--border-bright);background:transparent;color:var(--accent);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="calPrevMonth()">&#8249;</button>
+          <div style="text-align:center">
+            <div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;letter-spacing:3px;color:var(--text-primary);text-shadow:0 0 20px var(--accent-glow)" id="cal-month-title">APRIL 2026</div>
+            <div style="font-size:.65rem;color:var(--text-muted);letter-spacing:2px;margin-top:3px;text-transform:uppercase" id="cal-week-sub">Week 4</div>
+          </div>
+          <button style="width:36px;height:36px;border-radius:50%;border:2px solid var(--border-bright);background:transparent;color:var(--accent);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="calNextMonth()">&#8250;</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr) 110px;gap:4px;margin-bottom:6px">
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--accent);text-align:center;padding:6px 0;text-transform:uppercase">MON</div>
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--accent);text-align:center;padding:6px 0;text-transform:uppercase">TUE</div>
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--accent);text-align:center;padding:6px 0;text-transform:uppercase">WED</div>
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--accent);text-align:center;padding:6px 0;text-transform:uppercase">THU</div>
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--accent);text-align:center;padding:6px 0;text-transform:uppercase">FRI</div>
+          <div style="font-size:.7rem;font-weight:800;letter-spacing:2px;color:var(--accent);text-align:center;padding:6px 0;text-transform:uppercase">WEEK P&amp;L</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr) 110px;gap:4px" id="cal-grid"></div>
+      </div>
+    </div>
+
+    <!-- Day detail modal -->
+    <div class="modal-overlay" id="modal-cal-day">
+      <div class="modal" style="max-width:860px;max-height:90vh;overflow-y:auto">
+        <button class="modal-close" onclick="closeModal('modal-cal-day')">&#10005;</button>
+        <h2 id="cal-day-modal-title" style="font-size:.9rem;letter-spacing:2px">DAY DETAIL</h2>
+        <div id="cal-day-modal-content"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===== GEX LEVELS TAB ===== -->
@@ -1692,18 +1807,6 @@
 </div><!-- /main -->
 
 <!-- ===== NOTIFICATIONS ===== -->
-<!-- CALENDAR TAB -->
-<div class="tab-content" id="tab-calendar"></div>
-
-<!-- CALENDAR DAY MODAL -->
-<div class="modal-overlay" id="modal-cal-day">
-  <div class="modal" style="max-width:880px;max-height:90vh;overflow-y:auto">
-    <button class="modal-close" onclick="closeModal('modal-cal-day')">&#10005;</button>
-    <h2 id="cal-day-modal-title" style="font-size:.9rem;letter-spacing:2px">DAY DETAIL</h2>
-    <div id="cal-day-modal-content"></div>
-  </div>
-</div>
-
 <div class="notif-container" id="notif-container"></div>
 
 <!-- ===== VIX ALERT MODAL ===== -->
@@ -5300,6 +5403,7 @@ function switchTab(name) {
   if (name==='journal') { renderJournal(trades,'journal-body'); }
   if (name==='psychology') { renderPsychology(); setTimeout(buildCharts,100); }
   if (name==='analytics') { setTimeout(buildCharts,100); }
+  if (name==='analytics') { setTimeout(function(){ renderCalendarKPIs(); renderCalendar(); }, 50); }
   if (name==='chart') { setTimeout(loadTVWidget,100); }
   if (name==='recordings') { renderRecordings(); populateTradeLinker(); autoConnectOBS(); }
   if (name==='strategy') { renderStrategyMatrix(); }
@@ -5310,7 +5414,6 @@ function switchTab(name) {
       initChartEvents();
     }, 150);
   }
-  if (name==='calendar') { setTimeout(renderCalendarTab, 50); }
 }
 
 // ===== MODALS =====
@@ -5496,7 +5599,158 @@ function updateMarketSession() {
   if (h>=9&&h<16) s='NY SESSION';
   else if (h>=3&&h<9) s='LONDON SESSION';
   else if (h>=18&&h<23) s='ASIA SESSION';
-  document.getElementById('market-session').textContent = s;
+  document.g
+// ===== CALENDAR MODULE =====
+var calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calMode='ytd',calChart=null;
+
+function calTogglePerf(m){
+  calMode=m;
+  var ytd=document.getElementById('cal-toggle-ytd'),mtd=document.getElementById('cal-toggle-mtd');
+  if(ytd){ytd.style.background=m==='ytd'?'var(--accent-dim)':'transparent';ytd.style.color=m==='ytd'?'var(--accent)':'var(--text-secondary)';ytd.style.borderColor=m==='ytd'?'var(--accent)':'var(--border)';}
+  if(mtd){mtd.style.background=m==='mtd'?'var(--accent-dim)':'transparent';mtd.style.color=m==='mtd'?'var(--accent)':'var(--text-secondary)';mtd.style.borderColor=m==='mtd'?'var(--accent)':'var(--border)';}
+  renderCalendarKPIs();
+}
+
+function getTradesByDate(){
+  var map={};
+  (trades||[]).forEach(function(t){var d=t.datetime?t.datetime.slice(0,10):null;if(d){if(!map[d])map[d]=[];map[d].push(t);}});
+  return map;
+}
+
+function renderCalendarKPIs(){
+  var now=new Date(),fl=trades||[];
+  if(calMode==='mtd'){var ms=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');fl=fl.filter(function(t){return t.datetime&&t.datetime.startsWith(ms);});}
+  var tot=fl.reduce(function(a,t){return a+t.pnl;},0);
+  var wins=fl.filter(function(t){return t.pnl>0;});
+  var wr=fl.length?(wins.length/fl.length*100).toFixed(1):'0.0';
+  var exp=fl.length?(tot/fl.length).toFixed(2):'0.00';
+  var dm={};fl.forEach(function(t){var d=t.datetime?t.datetime.slice(0,10):null;if(d)dm[d]=(dm[d]||0)+t.pnl;});
+  var dv=Object.values(dm),ytd=(trades||[]).reduce(function(a,t){return a+t.pnl;},0);
+  var pp=((ytd/10000)*100).toFixed(1);
+  function fmt(v){return (v>=0?'+ ':'-  ')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function se(id,val,cls){var el=document.getElementById(id);if(el){el.textContent=val;if(cls!==undefined)el.className=cls;}}
+  se('cal-mtd-pnl',fmt(tot));
+  var mtdEl=document.getElementById('cal-mtd-pnl');if(mtdEl)mtdEl.style.color=tot>=0?'var(--green)':'var(--red)';
+  se('cal-total-trades',fl.length);
+  se('cal-win-rate',wr+'%');
+  se('cal-win-sub',calMode==='mtd'?'MONTHLY':'YTD');
+  se('cal-expectancy',(parseFloat(exp)>=0?'+ ':'-  ')+'$'+Math.abs(exp));
+  se('cal-best-day',dv.length?'+$'+Math.max.apply(null,dv).toFixed(0):'—');
+  se('cal-worst-day',dv.length?'-$'+Math.abs(Math.min.apply(null,dv)).toFixed(0):'—');
+  se('cal-ytd-total',fmt(ytd));
+  var ytdEl=document.getElementById('cal-ytd-total');if(ytdEl){ytdEl.style.color=ytd>=0?'var(--green)':'var(--red)';}
+  var bp=document.getElementById('bench-portfolio');if(bp)bp.style.width=Math.min(100,Math.abs(parseFloat(pp)))+'%';
+  se('bench-portfolio-pct',(pp>=0?'+':'')+pp+'%');
+  var syms=[].concat.apply([],[...new Set((trades||[]).map(function(t){return t.symbol;}).filter(Boolean))]);
+  se('cal-sym-count',syms.length+' SYMBOLS');
+  var ch=document.getElementById('cal-sym-chips');
+  if(ch)ch.innerHTML=syms.map(function(s){return '<span style="padding:4px 12px;border-radius:20px;border:1px solid var(--border-bright);font-size:.75rem;font-weight:700;background:var(--accent-dim);color:var(--accent);cursor:pointer">'+s+'</span>';}).join('');
+  renderCalStrategies(fl);renderCalEquity();
+}
+
+function renderCalStrategies(fl){
+  var by={};
+  fl.forEach(function(t){if(!t.setup)return;if(!by[t.setup])by[t.setup]={w:0,n:0,pnl:0};by[t.setup].n++;by[t.setup].pnl+=t.pnl;if(t.pnl>0)by[t.setup].w++;});
+  var el=document.getElementById('cal-strategy-list');if(!el)return;
+  var entries=Object.entries(by).sort(function(a,b){return b[1].pnl-a[1].pnl;});
+  if(!entries.length){el.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:12px;font-size:.85rem">Log trades with a setup to see breakdown</div>';return;}
+  el.innerHTML=entries.map(function(e){var n=e[0],d=e[1];var wr=d.n?Math.round(d.w/d.n*100):0;var c=wr>=60?'var(--green)':wr>=40?'var(--orange)':'var(--red)';return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:6px"><span style="font-size:.82rem;font-weight:700;color:var(--text-primary);flex:1">'+n+'</span><div style="width:70px;height:5px;background:var(--bg-card);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;width:'+wr+'%;background:'+c+'"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.8rem;font-weight:900;min-width:40px;text-align:right;color:'+c+'">'+wr+'%</span><span style="font-family:Share Tech Mono,monospace;font-size:.75rem;min-width:60px;text-align:right;color:'+(d.pnl>=0?'var(--green)':'var(--red)')+'">'+( d.pnl>=0?'+':'-')+'$'+Math.abs(d.pnl).toFixed(0)+'</span></div>';}).join('');
+}
+
+function renderCalEquity(){
+  var sorted=(trades||[]).slice().sort(function(a,b){return a.datetime<b.datetime?-1:1;});
+  var labels=[],vals=[],cum=0;
+  sorted.forEach(function(t){cum+=t.pnl;labels.push(t.datetime?t.datetime.slice(5,10):'');vals.push(cum);});
+  if(calChart){try{calChart.destroy();}catch(e){}calChart=null;}
+  var ctx=document.getElementById('cal-equity-chart');
+  if(!ctx||!window.Chart)return;
+  var pos=vals.length&&vals[vals.length-1]>=0;
+  calChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{data:vals,fill:true,borderColor:pos?'#00ff9d':'#ff3c6e',backgroundColor:pos?'rgba(0,255,157,.1)':'rgba(255,60,110,.1)',tension:0.4,pointRadius:0,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{ticks:{color:'#3a6080',font:{family:'Share Tech Mono',size:9},callback:function(v){return '$'+v.toFixed(0);}},grid:{color:'rgba(0,212,255,.04)'}}}}});
+}
+
+function renderCalendar(){
+  var byDate=getTradesByDate();
+  var MN=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  var tEl=document.getElementById('cal-month-title');if(tEl)tEl.textContent=MN[calMonth]+' '+calYear;
+  var today=new Date(),first=new Date(calYear,calMonth,1),last=new Date(calYear,calMonth+1,0);
+  var dow=first.getDay();dow=dow===0?6:dow-1;
+  var grid=document.getElementById('cal-grid');if(!grid)return;
+  grid.innerHTML='';
+  var wPnl=0,wCells=[],dOW=0;
+  for(var e=0;e<dow;e++){var em=document.createElement('div');em.className='cal-day cal-day-empty';wCells.push(em);dOW++;}
+  for(var d=1;d<=last.getDate();d++){
+    var ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var dt=byDate[ds]||[];
+    var dp=dt.reduce(function(a,t){return a+t.pnl;},0);
+    var isT=today.getDate()===d&&today.getMonth()===calMonth&&today.getFullYear()===calYear;
+    var hasRec=(sampleRecordings||[]).some(function(r){return r.date===ds;});
+    if(dOW<5){
+      var cell=document.createElement('div');
+      var cls='cal-day';
+      if(dt.length>0)cls+=dp>=0?' cal-day-profit':' cal-day-loss';
+      if(isT)cls+=' cal-day-today';
+      if(dt.length===0&&!isT)cls+=' cal-day-empty';
+      cell.className=cls;
+      if(dt.length>0)(function(ds2,dt2){cell.addEventListener('click',function(){openCalDayModal(ds2,dt2);});})(ds,dt);
+      var dots=dt.slice(0,10).map(function(t){return '<div class="cal-dot-'+(t.pnl>=0?'win':'loss')+'"></div>';}).join('');
+      cell.innerHTML='<div class="cal-day-num">'+d+'</div>'
+        +(dt.length>0?'<div class="cal-day-dots">'+dots+'</div><div class="cal-day-pnl '+(dp>=0?'pos':'neg')+'">'+(dp>=0?'+':'-')+'$'+Math.abs(dp).toFixed(0)+'</div><div class="cal-day-trades">'+dt.length+' trade'+(dt.length!==1?'s':'')+'</div>':'')
+        +(hasRec?'<div style="position:absolute;bottom:6px;right:7px;font-size:.6rem;color:#a855f7;font-weight:700">REC</div>':'');
+      wCells.push(cell);wPnl+=dp;dOW++;
+    }
+    if(dOW===5){
+      var wk=document.createElement('div');wk.className='cal-week-total';
+      var hasT=wCells.some(function(c){return c.querySelector('.cal-day-pnl');});
+      wk.innerHTML='<div class="cal-week-pnl '+(wPnl>=0?'pos':'neg')+'">'+(hasT?(wPnl>=0?'+':'-')+'$'+Math.abs(wPnl).toFixed(0):'+$0')+'</div><div class="cal-week-label-text">WEEK</div>';
+      wCells.forEach(function(c){grid.appendChild(c);});grid.appendChild(wk);
+      wCells=[];wPnl=0;dOW=0;
+    }
+  }
+  if(wCells.length>0){
+    while(dOW<5){var em2=document.createElement('div');em2.className='cal-day cal-day-empty';wCells.push(em2);dOW++;}
+    var wk2=document.createElement('div');wk2.className='cal-week-total';
+    wk2.innerHTML='<div class="cal-week-pnl '+(wPnl>=0?'pos':'neg')+'">'+(wPnl!==0?(wPnl>=0?'+':'-')+'$'+Math.abs(wPnl).toFixed(0):'+$0')+'</div><div class="cal-week-label-text">WEEK</div>';
+    wCells.forEach(function(c){grid.appendChild(c);});grid.appendChild(wk2);
+  }
+  var wn=Math.ceil((first.getDate()+dow)/7);
+  var wlEl=document.getElementById('cal-week-sub');if(wlEl)wlEl.textContent='Week '+wn;
+}
+
+function calPrevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function calNextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+function openCalDayModal(ds,dayTrades){
+  var parts=ds.split('-'),y=parts[0],m=parts[1],d=parts[2];
+  var label=new Date(y,m-1,d).toLocaleDateString('en-AU',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).toUpperCase();
+  var tEl=document.getElementById('cal-day-modal-title');if(tEl)tEl.textContent=label;
+  var dayPnl=dayTrades.reduce(function(a,t){return a+t.pnl;},0);
+  var wins=dayTrades.filter(function(t){return t.pnl>0;});
+  var wr=dayTrades.length?Math.round(wins.length/dayTrades.length*100):0;
+  var rrs=dayTrades.filter(function(t){return t.rr;}).map(function(t){var mm=String(t.rr).match(/1:([d.]+)/);return mm?parseFloat(mm[1]):0;}).filter(function(v){return v>0;});
+  var mrr=rrs.length?(rrs.reduce(function(a,b){return a+b;},0)/rrs.length).toFixed(1):'—';
+  var sets=[...new Set(dayTrades.map(function(t){return t.setup;}).filter(Boolean))];
+  var best=dayTrades.slice().sort(function(a,b){return b.pnl-a.pnl;})[0];
+  var worst=dayTrades.slice().sort(function(a,b){return a.pnl-b.pnl;})[0];
+  var recs=(sampleRecordings||[]).filter(function(r){return r.date===ds;});
+  var rows=dayTrades.map(function(t){var pos=t.pnl>=0;return '<tr><td style="color:var(--text-muted);font-size:.75rem">'+(t.datetime?t.datetime.slice(11,16):'--:--')+'</td><td><span class="trade-symbol">'+t.symbol+'</span></td><td><span class="direction-badge '+(t.dir==='LONG'?'long':'short')+'">'+t.dir+'</span></td><td style="font-size:.78rem">'+t.entry+'</td><td style="font-size:.78rem">'+t.exit+'</td><td style="color:var(--text-muted);font-size:.75rem">'+t.size+'</td><td class="pnl-val '+(pos?'pos':'neg')+'">'+(pos?'+':'-')+'$'+Math.abs(t.pnl).toFixed(2)+'</td><td style="color:var(--accent);font-size:.75rem">'+(t.rr||'—')+'</td><td style="font-size:.8rem">'+(t.emotion||'—')+'</td><td><span class="tag">'+(t.setup||'—')+'</span></td></tr>';}).join('');
+  var recsHtml=recs.length?recs.map(function(r){return '<div style="display:flex;align-items:center;gap:12px;background:rgba(168,85,247,.09);border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:10px 14px;margin-bottom:8px;cursor:pointer" onclick="playRecording('+r.id+');closeModal('modal-cal-day');switchTab('recordings')"><span style="font-size:1.2rem;color:#a855f7">&#9654;</span><div style="flex:1"><div style="font-size:.85rem;font-weight:700;color:var(--text-primary);margin-bottom:2px">'+r.title+'</div><div style="font-size:.72rem;color:var(--text-secondary);display:flex;gap:12px"><span>'+r.duration+'</span><span>'+r.size+'</span></div></div><span style="font-family:Orbitron,monospace;font-size:.88rem;font-weight:700;color:'+(r.pnl>=0?'var(--green)':'var(--red)')+'">'+( r.pnl>=0?'+':'-')+'$'+Math.abs(r.pnl)+'</span></div>';}).join(''):'<div style="text-align:center;padding:18px;color:var(--text-muted);font-size:.85rem;border:1px dashed var(--border);border-radius:8px">No recordings linked to this session.</div>';
+  var content=document.getElementById('cal-day-modal-content');if(!content)return;
+  content.innerHTML='<div style="display:flex;gap:16px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)">'
+    +'<div><div style="font-family:Orbitron,monospace;font-size:1rem;font-weight:900;color:var(--text-primary)">'+label+'</div>'
+    +'<div style="font-size:.75rem;color:var(--text-secondary);margin-top:5px">'+dayTrades.length+' trades &nbsp;|&nbsp; '+wins.length+'W / '+(dayTrades.length-wins.length)+'L &nbsp;|&nbsp; '+wr+'% WR &nbsp;|&nbsp; Avg R:R 1:'+mrr+'</div></div>'
+    +'<div style="font-family:Orbitron,monospace;font-size:1.5rem;font-weight:900;margin-left:auto;color:'+(dayPnl>=0?'var(--green)':'var(--red)')+'">'+( dayPnl>=0?'+':'-')+'$'+Math.abs(dayPnl).toLocaleString('en-US',{minimumFractionDigits:2})+'</div></div>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
+    +'<div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;flex:1"><div style="font-size:.62rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">WIN RATE</div><div style="font-family:Share Tech Mono,monospace;font-size:.95rem;font-weight:700;color:'+(wr>=60?'var(--green)':wr>=40?'var(--orange)':'var(--red)')+'">'+wr+'%</div></div>'
+    +'<div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;flex:1"><div style="font-size:.62rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">AVG R:R</div><div style="font-family:Share Tech Mono,monospace;font-size:.95rem;font-weight:700;color:var(--accent)">1:'+mrr+'</div></div>'
+    +'<div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;flex:1"><div style="font-size:.62rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">BEST TRADE</div><div style="font-family:Share Tech Mono,monospace;font-size:.95rem;font-weight:700;color:var(--green)">+$'+(best?Math.abs(best.pnl).toFixed(0):'0')+'</div></div>'
+    +'<div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:10px 14px;flex:1"><div style="font-size:.62rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">SETUPS</div><div style="font-family:Share Tech Mono,monospace;font-size:.82rem;font-weight:700;color:var(--text-primary)">'+(sets.join(', ')||'—')+'</div></div></div>'
+    +'<div style="font-family:Orbitron,monospace;font-size:.68rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin:16px 0 10px">TRADES</div>'
+    +'<div style="overflow-x:auto"><table class="journal-table" style="font-size:.8rem"><thead><tr><th>Time</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>Exit</th><th>Size</th><th>P&L</th><th>R:R</th><th>Emotion</th><th>Setup</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +'<div style="font-family:Orbitron,monospace;font-size:.68rem;font-weight:700;letter-spacing:2px;color:var(--accent);margin:16px 0 10px">SESSION RECORDINGS</div>'+recsHtml
+    +'<div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-outline" onclick="switchTab('journal');closeModal('modal-cal-day')">Journal</button><button class="btn btn-outline" onclick="switchTab('recordings');closeModal('modal-cal-day')">Recordings</button></div>';
+  openModal('modal-cal-day');
+}
+etElementById('market-session').textContent = s;
 }
 
 // ===== INIT =====
@@ -5564,287 +5818,6 @@ function init() {
   setTimeout(autoConnectOBS, 2000);
 
   notify('🐺','Lobo del Cash','System initialised. Live data connecting...','info');
-}
-
-
-// ===== CALENDAR MODULE =====
-let calYear = new Date().getFullYear();
-let calMonth = new Date().getMonth();
-let calMode = 'ytd';
-let calChart = null;
-
-function calTogglePerf(m) {
-  calMode = m;
-  const ytdBtn = document.getElementById('cal-toggle-ytd');
-  const mtdBtn = document.getElementById('cal-toggle-mtd');
-  if (ytdBtn) ytdBtn.style.background = m==='ytd' ? 'rgba(0,212,255,.2)' : 'transparent';
-  if (ytdBtn) ytdBtn.style.color = m==='ytd' ? '#00d4ff' : '#7ba3c8';
-  if (mtdBtn) mtdBtn.style.background = m==='mtd' ? 'rgba(0,212,255,.2)' : 'transparent';
-  if (mtdBtn) mtdBtn.style.color = m==='mtd' ? '#00d4ff' : '#7ba3c8';
-  renderCalendarKPIs();
-}
-
-function getTradesByDate() {
-  const map = {};
-  (trades || []).forEach(t => {
-    const d = t.datetime ? t.datetime.slice(0, 10) : null;
-    if (d) { if (!map[d]) map[d] = []; map[d].push(t); }
-  });
-  return map;
-}
-
-function renderCalendarKPIs() {
-  const now = new Date();
-  let fl = trades || [];
-  if (calMode === 'mtd') {
-    const ms = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-    fl = fl.filter(t => t.datetime && t.datetime.startsWith(ms));
-  }
-  const tot = fl.reduce((a, t) => a + t.pnl, 0);
-  const wins = fl.filter(t => t.pnl > 0);
-  const wr = fl.length ? (wins.length / fl.length * 100).toFixed(1) : '0.0';
-  const exp = fl.length ? (tot / fl.length).toFixed(2) : '0.00';
-  const dm = {};
-  fl.forEach(t => { const d = t.datetime ? t.datetime.slice(0, 10) : null; if (d) dm[d] = (dm[d] || 0) + t.pnl; });
-  const dv = Object.values(dm);
-  const ytd = (trades || []).reduce((a, t) => a + t.pnl, 0);
-  const pp = ((ytd / 10000) * 100).toFixed(1);
-  const fmt = v => (v >= 0 ? '+' : '-') + ' $' + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const se = (id, val, cls) => { const el = document.getElementById(id); if (el) { el.textContent = val; if (cls !== undefined) el.className = cls; } };
-  se('cal-mtd-pnl', fmt(tot), 'cal-kpi-val ' + (tot >= 0 ? 'pos' : 'neg'));
-  se('cal-total-trades', fl.length);
-  se('cal-win-rate', wr + '%');
-  se('cal-win-sub', calMode === 'mtd' ? 'MONTHLY' : 'YTD');
-  se('cal-expectancy', (exp >= 0 ? '+ ' : '- ') + '$' + Math.abs(exp));
-  se('cal-best-day', dv.length ? '+$' + Math.max(...dv).toFixed(0) : '—');
-  se('cal-worst-day', dv.length ? '-$' + Math.abs(Math.min(...dv)).toFixed(0) : '—');
-  se('cal-ytd-total', fmt(ytd), 'cal-ytd-total ' + (ytd >= 0 ? 'pos' : 'neg'));
-  const bp = document.getElementById('bench-portfolio');
-  if (bp) bp.style.width = Math.min(100, Math.abs(parseFloat(pp))) + '%';
-  se('bench-portfolio-pct', (pp >= 0 ? '+' : '') + pp + '%');
-  const syms = [...new Set((trades || []).map(t => t.symbol).filter(Boolean))];
-  se('cal-sym-count', syms.length + ' SYMBOLS');
-  const ch = document.getElementById('cal-sym-chips');
-  if (ch) ch.innerHTML = syms.map(s => '<span style="padding:5px 14px;border-radius:20px;border:1px solid rgba(0,212,255,.35);font-size:.78rem;font-weight:700;background:rgba(0,212,255,.09);color:#00d4ff;cursor:pointer">' + s + '</span>').join('');
-  renderCalStrategies(fl);
-  renderCalEquity();
-}
-
-function renderCalStrategies(fl) {
-  const by = {};
-  fl.forEach(t => {
-    if (!t.setup) return;
-    if (!by[t.setup]) by[t.setup] = { w: 0, n: 0, pnl: 0 };
-    by[t.setup].n++; by[t.setup].pnl += t.pnl;
-    if (t.pnl > 0) by[t.setup].w++;
-  });
-  const el = document.getElementById('cal-strategy-list');
-  if (!el) return;
-  const entries = Object.entries(by).sort((a, b) => b[1].pnl - a[1].pnl);
-  if (!entries.length) { el.innerHTML = '<div style="color:#3a6080;text-align:center;padding:12px;font-size:.85rem">Log trades with a setup to see breakdown</div>'; return; }
-  el.innerHTML = entries.map(([name, d]) => {
-    const wr = d.n ? Math.round(d.w / d.n * 100) : 0;
-    const c = wr >= 60 ? '#00ff9d' : wr >= 40 ? '#ff9f00' : '#ff3c6e';
-    return '<div style="display:flex;align-items:center;gap:10px;background:rgba(2,11,24,.7);border:1px solid rgba(0,212,255,.12);border-radius:8px;padding:10px 14px;margin-bottom:8px">'
-      + '<span style="font-size:.85rem;font-weight:700;color:#e8f4ff;flex:1">' + name + '</span>'
-      + '<div style="width:80px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;width:' + wr + '%;background:' + c + '"></div></div>'
-      + '<span style="font-family:Share Tech Mono,monospace;font-size:.82rem;font-weight:900;min-width:44px;text-align:right;color:' + c + '">' + wr + '%</span>'
-      + '<span style="font-family:Share Tech Mono,monospace;font-size:.75rem;min-width:65px;text-align:right;color:' + (d.pnl >= 0 ? '#00ff9d' : '#ff3c6e') + '">' + (d.pnl >= 0 ? '+' : '-') + '$' + Math.abs(d.pnl).toFixed(0) + '</span>'
-      + '<span style="font-size:.68rem;color:#3a6080;min-width:30px;text-align:right">' + d.n + 'T</span></div>';
-  }).join('');
-}
-
-function renderCalEquity() {
-  const sorted = [...(trades || [])].sort((a, b) => a.datetime < b.datetime ? -1 : 1);
-  const labels = [], vals = [];
-  let cum = 0;
-  sorted.forEach(t => { cum += t.pnl; labels.push(t.datetime ? t.datetime.slice(5, 10) : ''); vals.push(cum); });
-  if (calChart) { try { calChart.destroy(); } catch (e) {} calChart = null; }
-  const ctx = document.getElementById('cal-equity-chart');
-  if (!ctx || !window.Chart) return;
-  const pos = vals.length && vals[vals.length - 1] >= 0;
-  calChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [{ data: vals, fill: true, borderColor: pos ? '#00ff9d' : '#ff3c6e', backgroundColor: pos ? 'rgba(0,255,157,.12)' : 'rgba(255,60,110,.12)', tension: 0.4, pointRadius: 0, borderWidth: 2.5 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { ticks: { color: '#3a6080', font: { family: 'Share Tech Mono', size: 9 }, callback: v => '$' + v.toFixed(0) }, grid: { color: 'rgba(0,212,255,.04)' } } } }
-  });
-}
-
-function renderCalendar() {
-  const byDate = getTradesByDate();
-  const MN = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-  const tEl = document.getElementById('cal-month-title');
-  if (tEl) tEl.textContent = MN[calMonth] + ' ' + calYear;
-  const today = new Date();
-  const first = new Date(calYear, calMonth, 1);
-  const last = new Date(calYear, calMonth + 1, 0);
-  let dow = first.getDay(); dow = dow === 0 ? 6 : dow - 1;
-  const grid = document.getElementById('cal-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  const EI = { Calm: '\u{1F60C}', Focused: '\u{1F3AF}', Confident: '\u{1F4AA}', Anxious: '\u{1F630}', Greedy: '\u{1F4B0}', FOMO: '\u{1F6A8}', Revenge: '\u{1F624}', Tired: '\u{1F634}' };
-  let wPnl = 0, wCells = [], dOW = 0;
-  for (let e = 0; e < dow; e++) { const em = document.createElement('div'); em.className = 'cal-day cal-day-empty'; wCells.push(em); dOW++; }
-  for (let d = 1; d <= last.getDate(); d++) {
-    const ds = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    const dt = byDate[ds] || [];
-    const dp = dt.reduce((a, t) => a + t.pnl, 0);
-    const isT = today.getDate() === d && today.getMonth() === calMonth && today.getFullYear() === calYear;
-    const ec = {}; dt.forEach(t => { if (t.emotion) ec[t.emotion] = (ec[t.emotion] || 0) + 1; });
-    const topE = Object.entries(ec).sort((a, b) => b[1] - a[1])[0]?.[0];
-    const hasRec = (sampleRecordings || []).some(r => r.date === ds);
-    if (dOW < 5) {
-      const cell = document.createElement('div');
-      let cls = 'cal-day';
-      if (dt.length > 0) cls += dp >= 0 ? ' cal-day-profit' : ' cal-day-loss';
-      if (isT) cls += ' cal-day-today';
-      if (dt.length === 0 && !isT) cls += ' cal-day-empty';
-      cell.className = cls;
-      if (dt.length > 0) cell.addEventListener('click', () => openCalDayModal(ds, dt));
-      const dots = dt.slice(0, 10).map(t => '<div class="cal-dot-' + (t.pnl >= 0 ? 'win' : 'loss') + '"></div>').join('');
-      cell.innerHTML = '<div class="cal-day-num">' + d + (topE ? '<span class="cal-day-emotion">' + EI[topE] + '</span>' : '') + '</div>'
-        + (dt.length > 0 ? '<div class="cal-day-dots">' + dots + '</div><div class="cal-day-pnl ' + (dp >= 0 ? 'pos' : 'neg') + '">' + (dp >= 0 ? '+' : '-') + '$' + Math.abs(dp).toFixed(0) + '</div><div class="cal-day-trades">' + dt.length + ' trade' + (dt.length !== 1 ? 's' : '') + '</div>' : '')
-        + (hasRec ? '<div class="cal-day-rec">&#9210; REC</div>' : '');
-      wCells.push(cell); wPnl += dp; dOW++;
-    }
-    if (dOW === 5) {
-      const wk = document.createElement('div'); wk.className = 'cal-week-total';
-      const hasT = wCells.some(c => c.querySelector('.cal-day-pnl'));
-      wk.innerHTML = '<div class="cal-week-pnl ' + (wPnl >= 0 ? 'pos' : 'neg') + '">' + (hasT ? (wPnl >= 0 ? '+' : '-') + '$' + Math.abs(wPnl).toFixed(0) : '+$0') + '</div><div class="cal-week-label-text">WEEK</div>';
-      wCells.forEach(c => grid.appendChild(c)); grid.appendChild(wk);
-      wCells = []; wPnl = 0; dOW = 0;
-    }
-  }
-  if (wCells.length > 0) {
-    while (dOW < 5) { const em = document.createElement('div'); em.className = 'cal-day cal-day-empty'; wCells.push(em); dOW++; }
-    const wk = document.createElement('div'); wk.className = 'cal-week-total';
-    wk.innerHTML = '<div class="cal-week-pnl ' + (wPnl >= 0 ? 'pos' : 'neg') + '">' + (wPnl !== 0 ? (wPnl >= 0 ? '+' : '-') + '$' + Math.abs(wPnl).toFixed(0) : '+$0') + '</div><div class="cal-week-label-text">WEEK</div>';
-    wCells.forEach(c => grid.appendChild(c)); grid.appendChild(wk);
-  }
-  const wn = Math.ceil((first.getDate() + dow) / 7);
-  const wlEl = document.getElementById('cal-week-sub'); if (wlEl) wlEl.textContent = 'Week ' + wn;
-}
-
-function calPrevMonth() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
-function calNextMonth() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
-
-function openCalDayModal(ds, dayTrades) {
-  const [y, m, d] = ds.split('-');
-  const label = new Date(y, m - 1, d).toLocaleDateString('en-AU', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
-  const tEl = document.getElementById('cal-day-modal-title'); if (tEl) tEl.textContent = '\u{1F4C5} ' + label;
-  const dayPnl = dayTrades.reduce((a, t) => a + t.pnl, 0);
-  const wins = dayTrades.filter(t => t.pnl > 0);
-  const wr = dayTrades.length ? Math.round(wins.length / dayTrades.length * 100) : 0;
-  const rrs = dayTrades.filter(t => t.rr).map(t => { const mm = String(t.rr).match(/1:([d.]+)/); return mm ? parseFloat(mm[1]) : 0; }).filter(v => v > 0);
-  const mrr = rrs.length ? (rrs.reduce((a, b) => a + b, 0) / rrs.length).toFixed(1) : '—';
-  const ems = [...new Set(dayTrades.map(t => t.emotion).filter(Boolean))];
-  const sets = [...new Set(dayTrades.map(t => t.setup).filter(Boolean))];
-  const best = [...dayTrades].sort((a, b) => b.pnl - a.pnl)[0];
-  const worst = [...dayTrades].sort((a, b) => a.pnl - b.pnl)[0];
-  const recs = (sampleRecordings || []).filter(r => r.date === ds);
-  const ss = {};
-  dayTrades.forEach(t => { if (!t.setup) return; if (!ss[t.setup]) ss[t.setup] = { w: 0, n: 0, pnl: 0 }; ss[t.setup].n++; ss[t.setup].pnl += t.pnl; if (t.pnl > 0) ss[t.setup].w++; });
-  const rows = dayTrades.map(t => {
-    const pos = t.pnl >= 0;
-    return '<tr><td style="color:#3a6080;font-size:.75rem">' + (t.datetime ? t.datetime.slice(11, 16) : '--:--') + '</td>'
-      + '<td><span class="trade-symbol">' + t.symbol + '</span></td>'
-      + '<td><span class="direction-badge ' + (t.dir === 'LONG' ? 'long' : 'short') + '">' + t.dir + '</span></td>'
-      + '<td style="font-size:.78rem">' + t.entry + '</td>'
-      + '<td style="font-size:.78rem">' + t.exit + '</td>'
-      + '<td style="color:#3a6080;font-size:.75rem">' + t.size + '</td>'
-      + '<td class="pnl-val ' + (pos ? 'pos' : 'neg') + '">' + (pos ? '+' : '-') + '$' + Math.abs(t.pnl).toFixed(2) + '</td>'
-      + '<td style="color:#00d4ff;font-size:.75rem">' + (t.rr || '—') + '</td>'
-      + '<td style="font-size:.8rem">' + (t.emotion || '—') + '</td>'
-      + '<td><span class="tag">' + (t.setup || '—') + '</span></td></tr>';
-  }).join('');
-  const recsHtml = recs.length
-    ? recs.map(r => '<div style="display:flex;align-items:center;gap:12px;background:rgba(168,85,247,.09);border:1px solid rgba(168,85,247,.35);border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer" onclick="playRecording(' + r.id + ');closeModal('modal-cal-day');switchTab('recordings')">'
-      + '<span style="font-size:1.4rem;color:#a855f7">&#9654;</span>'
-      + '<div style="flex:1"><div style="font-size:.85rem;font-weight:700;color:#e8f4ff;margin-bottom:3px">' + r.title + '</div>'
-      + '<div style="font-size:.72rem;color:#7ba3c8;display:flex;gap:12px"><span>' + r.duration + '</span><span>' + r.size + '</span></div></div>'
-      + '<span style="font-family:Orbitron,monospace;font-size:.9rem;font-weight:700;color:' + (r.pnl >= 0 ? '#00ff9d' : '#ff3c6e') + '">' + (r.pnl >= 0 ? '+' : '-') + '$' + Math.abs(r.pnl) + '</span></div>').join('')
-    : '<div style="text-align:center;padding:20px;color:#3a6080;font-size:.85rem;border:1px dashed rgba(0,212,255,.18);border-radius:10px">No recordings linked to this session.</div>';
-  const content = document.getElementById('cal-day-modal-content');
-  if (!content) return;
-  content.innerHTML = '<div style="display:flex;gap:16px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid rgba(0,212,255,.15)">'
-    + '<div><div style="font-family:Orbitron,monospace;font-size:1.1rem;font-weight:900;color:#e8f4ff">' + label + '</div>'
-    + '<div style="font-size:.78rem;color:#7ba3c8;margin-top:5px">' + dayTrades.length + ' trades | ' + wins.length + 'W/' + (dayTrades.length - wins.length) + 'L | ' + wr + '% WR | R:R 1:' + mrr + '</div></div>'
-    + '<div style="font-family:Orbitron,monospace;font-size:1.6rem;font-weight:900;margin-left:auto;color:' + (dayPnl >= 0 ? '#00ff9d' : '#ff3c6e') + '">' + (dayPnl >= 0 ? '+' : '-') + '$' + Math.abs(dayPnl).toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</div></div>'
-    + '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">'
-    + '<div style="background:rgba(4,20,40,.85);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px 16px;flex:1"><div style="font-size:.63rem;color:#3a6080;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">WIN RATE</div><div style="font-family:Share Tech Mono,monospace;font-size:1rem;font-weight:700;color:' + (wr >= 60 ? '#00ff9d' : wr >= 40 ? '#ff9f00' : '#ff3c6e') + '">' + wr + '%</div></div>'
-    + '<div style="background:rgba(4,20,40,.85);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px 16px;flex:1"><div style="font-size:.63rem;color:#3a6080;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">AVG R:R</div><div style="font-family:Share Tech Mono,monospace;font-size:1rem;font-weight:700;color:#00d4ff">1:' + mrr + '</div></div>'
-    + '<div style="background:rgba(4,20,40,.85);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px 16px;flex:1"><div style="font-size:.63rem;color:#3a6080;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">BEST TRADE</div><div style="font-family:Share Tech Mono,monospace;font-size:1rem;font-weight:700;color:#00ff9d">+$' + (best ? Math.abs(best.pnl).toFixed(0) : '0') + '</div></div>'
-    + '<div style="background:rgba(4,20,40,.85);border:1px solid rgba(0,212,255,.15);border-radius:8px;padding:10px 16px;flex:1"><div style="font-size:.63rem;color:#3a6080;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">SETUPS</div><div style="font-family:Share Tech Mono,monospace;font-size:.85rem;font-weight:700;color:#e8f4ff">' + (sets.join(', ') || '—') + '</div></div></div>'
-    + '<div style="font-family:Orbitron,monospace;font-size:.68rem;font-weight:700;letter-spacing:2px;color:#00d4ff;margin:18px 0 10px">&#x1F5D2; TRADES</div>'
-    + '<div style="overflow-x:auto"><table class="journal-table" style="font-size:.8rem"><thead><tr><th>Time</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>Exit</th><th>Size</th><th>P&L</th><th>R:R</th><th>Emotion</th><th>Setup</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-    + (ems.length ? '<div style="font-family:Orbitron,monospace;font-size:.68rem;font-weight:700;letter-spacing:2px;color:#00d4ff;margin:18px 0 10px">&#x1F9EC; PSYCHOLOGY</div>' + ems.map(e => '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(4,20,40,.6);border:1px solid rgba(0,212,255,.1);border-radius:8px;margin-bottom:8px"><span style="font-size:.78rem;color:#7ba3c8;width:90px;flex-shrink:0">' + e + '</span><span style="padding:4px 14px;border-radius:20px;font-size:.75rem;font-weight:700;border:1px solid rgba(0,212,255,.4);background:rgba(0,212,255,.1);color:#00d4ff">' + e + '</span></div>').join('') : '')
-    + '<div style="font-family:Orbitron,monospace;font-size:.68rem;font-weight:700;letter-spacing:2px;color:#00d4ff;margin:18px 0 10px">&#x1F3AC; SESSION RECORDINGS</div>' + recsHtml
-    + '<div style="display:flex;gap:8px;margin-top:18px"><button class="btn btn-outline" onclick="switchTab('journal');closeModal('modal-cal-day')">&#x1F4CB; Journal</button><button class="btn btn-outline" onclick="switchTab('recordings');closeModal('modal-cal-day')">&#x1F3AC; Recordings</button></div>';
-  openModal('modal-cal-day');
-}
-
-function renderCalendarTab() {
-  const tab = document.getElementById('tab-calendar');
-  if (!tab) return;
-  tab.innerHTML = [
-    '<style>',
-    '.cal-day{background:rgba(4,20,40,.85);border:1px solid rgba(0,212,255,.12);border-radius:10px;padding:10px;min-height:92px;cursor:pointer;transition:all .25s;position:relative;display:flex;flex-direction:column}',
-    '.cal-day:hover{border-color:rgba(0,212,255,.55);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.5)}',
-    '.cal-day.cal-day-empty{background:transparent;border-color:transparent;cursor:default;pointer-events:none}',
-    '.cal-day.cal-day-profit{border-color:rgba(0,255,157,.55);background:rgba(0,255,157,.08)}',
-    '.cal-day.cal-day-profit:hover{box-shadow:0 8px 28px rgba(0,255,157,.2)}',
-    '.cal-day.cal-day-loss{border-color:rgba(255,60,110,.55);background:rgba(255,60,110,.08)}',
-    '.cal-day.cal-day-loss:hover{box-shadow:0 8px 28px rgba(255,60,110,.2)}',
-    '.cal-day.cal-day-today{border-color:#00d4ff!important;border-width:2px;box-shadow:0 0 20px rgba(0,212,255,.3)}',
-    '.cal-day-num{font-family:Orbitron,monospace;font-size:.92rem;font-weight:700;color:#7ba3c8;margin-bottom:4px}',
-    '.cal-day.cal-day-profit .cal-day-num{color:#00ff9d}',
-    '.cal-day.cal-day-loss .cal-day-num{color:#ff3c6e}',
-    '.cal-day-pnl{font-family:Orbitron,monospace;font-size:.92rem;font-weight:900;margin-top:auto;letter-spacing:.5px}',
-    '.cal-day-pnl.pos{color:#00ff9d;text-shadow:0 0 12px rgba(0,255,157,.6)}',
-    '.cal-day-pnl.neg{color:#ff3c6e;text-shadow:0 0 12px rgba(255,60,110,.6)}',
-    '.cal-day-trades{font-size:.65rem;color:#3a6080;margin-top:3px}',
-    '.cal-day-dots{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}',
-    '.cal-dot-win{width:7px;height:7px;border-radius:50%;background:#00ff9d;box-shadow:0 0 6px rgba(0,255,157,.75)}',
-    '.cal-dot-loss{width:7px;height:7px;border-radius:50%;background:#ff3c6e;box-shadow:0 0 6px rgba(255,60,110,.75)}',
-    '.cal-day-emotion{font-size:.9rem;position:absolute;top:8px;right:9px}',
-    '.cal-day-rec{position:absolute;bottom:7px;right:8px;font-size:.6rem;color:#a855f7;font-weight:700}',
-    '.cal-week-total{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.22);border-radius:10px;padding:10px;min-height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}',
-    '.cal-week-pnl{font-family:Orbitron,monospace;font-size:.92rem;font-weight:900}',
-    '.cal-week-pnl.pos{color:#00ff9d}.cal-week-pnl.neg{color:#ff3c6e}',
-    '.cal-week-label-text{font-size:.62rem;color:#3a6080;letter-spacing:1px;text-transform:uppercase}',
-    '.cal-kpi-val.pos{color:#00ff9d}.cal-kpi-val.neg{color:#ff3c6e}',
-    '.cal-ytd-total.pos{color:#00ff9d}.cal-ytd-total.neg{color:#ff3c6e}',
-    '</style>',
-    '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px">',
-    '<div style="background:linear-gradient(135deg,rgba(0,255,157,.15),rgba(0,255,157,.03));border:2px solid rgba(0,255,157,.55);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px"><span style="font-size:1.9rem">&#x1F4C8;</span><div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">MTD P&L</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900" id="cal-mtd-pnl">+$0.00</div></div></div>',
-    '<div style="background:linear-gradient(135deg,rgba(0,212,255,.13),rgba(0,212,255,.03));border:2px solid rgba(0,212,255,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px"><span style="font-size:1.9rem">&#x1F522;</span><div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Total Trades</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-total-trades">0</div></div></div>',
-    '<div style="background:linear-gradient(135deg,rgba(0,212,255,.13),rgba(0,212,255,.03));border:2px solid rgba(0,212,255,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px"><span style="font-size:1.9rem">&#x1F3AF;</span><div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Win Rate</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-win-rate">0%</div><div style="font-size:.65rem;color:#3a6080;margin-top:3px" id="cal-win-sub">YTD</div></div></div>',
-    '<div style="background:linear-gradient(135deg,rgba(0,212,255,.13),rgba(0,212,255,.03));border:2px solid rgba(0,212,255,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px"><span style="font-size:1.9rem">&#x26A1;</span><div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Expectancy</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#e8f4ff" id="cal-expectancy">$0.00</div><div style="font-size:.65rem;color:#3a6080;margin-top:3px">PER TRADE</div></div></div>',
-    '<div style="background:linear-gradient(135deg,rgba(0,255,157,.1),rgba(0,255,157,.02));border:2px solid rgba(0,255,157,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px"><span style="font-size:1.9rem">&#x1F3C6;</span><div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Best Day</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#00ff9d" id="cal-best-day">&#x2014;</div></div></div>',
-    '<div style="background:linear-gradient(135deg,rgba(255,60,110,.1),rgba(255,60,110,.02));border:2px solid rgba(255,60,110,.4);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:14px"><span style="font-size:1.9rem">&#x1F480;</span><div><div style="font-size:.72rem;color:#7ba3c8;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700">Worst Day</div><div style="font-family:Orbitron,monospace;font-size:1.3rem;font-weight:900;color:#ff3c6e" id="cal-worst-day">&#x2014;</div></div></div>',
-    '</div>',
-    '<div style="display:grid;grid-template-columns:360px 1fr;gap:18px">',
-    // LEFT COLUMN
-    '<div style="display:flex;flex-direction:column;gap:16px">',
-    // YTD panel
-    '<div style="background:rgba(7,30,51,.95);border:1px solid rgba(0,212,255,.22);border-radius:14px;padding:18px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(0,212,255,.12)"><span style="font-size:1.2rem">&#x1F4C8;</span><span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:#00d4ff;flex:1">YEAR TO DATE</span><span style="font-family:Orbitron,monospace;font-size:1.1rem;font-weight:900" id="cal-ytd-total">+$0.00</span></div><canvas id="cal-equity-chart" height="130"></canvas></div>',
-    // Performance panel
-    '<div style="background:rgba(7,30,51,.95);border:1px solid rgba(0,212,255,.22);border-radius:14px;padding:18px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(0,212,255,.12)"><span style="font-size:1.2rem">&#x1F4CA;</span><span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:#00d4ff;flex:1">PERFORMANCE</span><div style="display:flex;gap:5px"><button style="padding:4px 12px;border-radius:6px;border:1px solid #00d4ff;background:rgba(0,212,255,.2);color:#00d4ff;font-size:.72rem;font-weight:700;cursor:pointer" id="cal-toggle-ytd" onclick="calTogglePerf('ytd')">YTD</button><button style="padding:4px 12px;border-radius:6px;border:1px solid rgba(0,212,255,.3);background:transparent;color:#7ba3c8;font-size:.72rem;font-weight:700;cursor:pointer" id="cal-toggle-mtd" onclick="calTogglePerf('mtd')">MTD</button></div></div><div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:.72rem;font-weight:700;color:#7ba3c8;width:82px;flex-shrink:0">PORTFOLIO</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:var(--accent)" id="bench-portfolio"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.82rem;color:#e8f4ff;width:52px;text-align:right;font-weight:700" id="bench-portfolio-pct">+0.0%</span></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:.72rem;font-weight:700;color:#7ba3c8;width:82px;flex-shrink:0">S&amp;P 500</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:#4ade80;width:47%"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.82rem;color:#e8f4ff;width:52px;text-align:right;font-weight:700">+4.7%</span></div><div style="display:flex;align-items:center;gap:10px"><span style="font-size:.72rem;font-weight:700;color:#7ba3c8;width:82px;flex-shrink:0">NASDAQ</span><div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:#f59e0b;width:81%"></div></div><span style="font-family:Share Tech Mono,monospace;font-size:.82rem;color:#e8f4ff;width:52px;text-align:right;font-weight:700">+8.1%</span></div></div></div>',
-    // Strategy panel
-    '<div style="background:rgba(7,30,51,.95);border:1px solid rgba(0,212,255,.22);border-radius:14px;padding:18px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(0,212,255,.12)"><span style="font-size:1.2rem">&#x1F9E0;</span><span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:#00d4ff">STRATEGY WIN RATES</span></div><div id="cal-strategy-list"></div></div>',
-    // Instruments panel
-    '<div style="background:rgba(7,30,51,.95);border:1px solid rgba(0,212,255,.22);border-radius:14px;padding:18px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(0,212,255,.12)"><span style="font-size:1.2rem">&#x1F532;</span><span style="font-family:Orbitron,monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;color:#00d4ff;flex:1">INSTRUMENTS</span><span style="font-size:.68rem;font-weight:700;background:rgba(0,212,255,.15);color:#00d4ff;border:1px solid rgba(0,212,255,.45);border-radius:20px;padding:3px 12px" id="cal-sym-count">0 SYMBOLS</span></div><div style="display:flex;flex-wrap:wrap;gap:8px" id="cal-sym-chips"></div></div>',
-    '</div>',
-    // RIGHT COLUMN: Calendar grid
-    '<div style="background:rgba(7,30,51,.95);border:1px solid rgba(0,212,255,.22);border-radius:14px;padding:18px">',
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px"><button style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(0,212,255,.4);background:transparent;color:#00d4ff;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="calPrevMonth()">&#8249;</button><div style="text-align:center"><div style="font-family:Orbitron,monospace;font-size:1.4rem;font-weight:900;letter-spacing:3px;color:#e8f4ff;text-shadow:0 0 25px rgba(0,212,255,.4)" id="cal-month-title">APRIL 2026</div><div style="font-size:.7rem;color:#3a6080;letter-spacing:2px;margin-top:4px;text-transform:uppercase" id="cal-week-sub">Week 4</div></div><button style="width:38px;height:38px;border-radius:50%;border:2px solid rgba(0,212,255,.4);background:transparent;color:#00d4ff;font-size:1.5rem;cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="calNextMonth()">&#8250;</button></div>',
-    '<div style="display:grid;grid-template-columns:repeat(5,1fr) 120px;gap:5px;margin-bottom:8px"><div style="font-size:.72rem;font-weight:800;letter-spacing:3px;color:#00d4ff;text-align:center;padding:7px 0">MON</div><div style="font-size:.72rem;font-weight:800;letter-spacing:3px;color:#00d4ff;text-align:center;padding:7px 0">TUE</div><div style="font-size:.72rem;font-weight:800;letter-spacing:3px;color:#00d4ff;text-align:center;padding:7px 0">WED</div><div style="font-size:.72rem;font-weight:800;letter-spacing:3px;color:#00d4ff;text-align:center;padding:7px 0">THU</div><div style="font-size:.72rem;font-weight:800;letter-spacing:3px;color:#00d4ff;text-align:center;padding:7px 0">FRI</div><div style="font-size:.72rem;font-weight:800;letter-spacing:3px;color:#00d4ff;text-align:center;padding:7px 0">WEEK P&L</div></div>',
-    '<div style="display:grid;grid-template-columns:repeat(5,1fr) 120px;gap:5px" id="cal-grid"></div>',
-    '</div>',
-    '</div>'
-  ].join('');
-  renderCalendarKPIs();
-  renderCalendar();
 }
 
 window.addEventListener('load', init);
